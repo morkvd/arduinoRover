@@ -59,6 +59,8 @@ void setup() {
   // back sensor pins
   pinMode(backSensorTrig, OUTPUT);
   pinMode(backSensorEcho, INPUT);
+  // speaker pin
+  pinMode(speakerPin, OUTPUT);
  
 }
 
@@ -66,11 +68,15 @@ void setup() {
 // * MAIN LOOP *
 // ****************
 void loop() {
+  Serial.println("main loop");
   boolean driving = false;
+
+  playDrivingSound();
   
   if ( senseFront() ) {
     Serial.println("Detected movement in front");
     while( senseFront() ) {
+      Serial.println("Rotating");
       rotateClockwise();
     }
     halt();
@@ -79,6 +85,14 @@ void loop() {
     Serial.println("Detected movement in back");
     driving = true;
   }
+  while( sensePickup() ) {
+    Serial.println("I was picked up! HALP");
+    playPickupSound();
+    if (driving) {
+      driving = false;
+    }
+    halt();
+  }
 
   while(driving) {
     Serial.println("driving");
@@ -86,9 +100,10 @@ void loop() {
     playDrivingSound();
     
     if ( senseFront() ) {
-      Serial.println("Detected movement in front");
+      Serial.println("Detected movement in front while driving");
       halt();
       while( senseFront() ) {
+        Serial.println("Rotating");
         rotateClockwise();
       }
       halt();
@@ -118,7 +133,7 @@ boolean senseFront() {
   digitalWrite(frontSensorTrig, LOW);
   duration = pulseIn(frontSensorEcho, HIGH); // return the time between high low
   distance = duration / 20.9;
-  return distance < 150;
+  return distance < 50;
 }
 
 // ****************
@@ -133,7 +148,7 @@ boolean senseBack() {
   digitalWrite(backSensorTrig, LOW);
   duration = pulseIn(backSensorEcho, HIGH); // return the time between high low
   distance = duration / 20.9;
-  return distance < 300;
+  return distance < 50;
 }
 
 // ******************
@@ -142,6 +157,8 @@ boolean senseBack() {
 boolean sensePickup() {
   int lightSensorValue = 1023;
   lightSensorValue = analogRead(lightSensorPin);
+  Serial.println("picked up, sensorvalue > 370 ==");
+  Serial.println(lightSensorValue > 370);
   return lightSensorValue > 370;
 }
 
@@ -342,11 +359,18 @@ void halt() {
 #define BPM 120    //  you can change this value changing all the others
 #define H 2*Q //half 2/4
 #define Q 60000/BPM //quarter 1/4 
-#define E Q/2   //eighth 1/8
-#define S Q/4 // sixteenth 1/16
-#define W 4*Q // whole 4/4
 
 void playDrivingSound() {
+  tone(speakerPin, D3, Q/4); 
+  delay(10+Q/4);
+  tone(speakerPin, D4, Q/4); 
+  delay(10+Q/4);
+  tone(speakerPin, D1, Q/4); 
+  delay(100+Q/4);
+  tone(speakerPin, D4, Q/4); 
+  delay(200+Q/4); 
+}
+void playPickupSound() {
   tone(speakerPin, LA6, Q/4); 
   delay(1+Q/4);
   tone(speakerPin, Bb6, Q/4); 
@@ -359,31 +383,6 @@ void playDrivingSound() {
   delay(1+Q/4);
   tone(speakerPin, D7, Q/4); 
   delay(1+Q/4);
-}
-void playPickupSound() {
-  tone(speakerPin, D3, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D4, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D1, Q/4); 
-  delay(100+Q/4);
-  tone(speakerPin, D4, Q/4); 
-  delay(200+Q/4);
-  tone(speakerPin, D1, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D1, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D4, Q/4); 
-  delay(200+Q/4);
-  tone(speakerPin, D4, Q/4); 
-  delay(200+Q/4);
-  tone(speakerPin, D3, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D3, Q/4); 
-  delay(10+Q/4);
-  tone(speakerPin, D4, Q/4); 
-  delay(200+Q/4);
-  tone(speakerPin, D1, Q/4); 
 }
 
 // the the sensor code was partially copied from:
