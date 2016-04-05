@@ -27,29 +27,7 @@ const int frontSensorEcho = A1;
 const int backSensorTrig = A2;
 const int backSensorEcho = A3;
 
-
-// Variables for rover state
-
-// - Possible sensor states:
-  // - back sensor: 
-    //  0: no one is close
-    //  1: someone is close
-  // - front sensor: 
-    //  0: way is clear
-    //  1: obstacle in the way
-
-// - Possible movement states of rover:
-  //  0. stationary
-  //  1. forward
-  //  2. backward
-  //  3. clockwise
-  //  4. counterclockwise
-
-
 // Begin stationary
-
-// optionally? 
-// periodically rotate to check suroundings
     
 // if backsensor detects someone
   // movement forward until backsensor doesn't detect anyone
@@ -62,20 +40,20 @@ void setup() {
   Serial.begin(9600);
   
   // Left-Forward (LF)
-  pinMode(3, OUTPUT);   // A: Blue wire +
-  pinMode(4, OUTPUT);   // D: Blue wire-
+  pinMode(3, OUTPUT);   // Pin 3  = Blue wire => transisor A
+  pinMode(4, OUTPUT);   // Pin 4  = Blue wire => transisor D
   
   // Left-Backward (LB)
-  pinMode(5, OUTPUT);   // B: Green wire +
-  pinMode(6, OUTPUT);   // C: Green wire -
+  pinMode(5, OUTPUT);   // Pin 5  = Green wire => transisor B
+  pinMode(6, OUTPUT);   // Pin 6  = Green wire => transisor C
   
   // Right-Forward (RF)
-  pinMode(7, OUTPUT);   // E: Yellow wire +
-  pinMode(8, OUTPUT);   // H: Yellow wire -
+  pinMode(7, OUTPUT);   // Pin 7  = Yellow wire => transisor E
+  pinMode(8, OUTPUT);   // Pin 8  = Yellow wire => transisor H
   
   // Right-Backward (RB)
-  pinMode(9, OUTPUT);   // F: White wire +
-  pinMode(10, OUTPUT);  // G: White wire -
+  pinMode(9, OUTPUT);   // Pin 9  = White wire => transisor F
+  pinMode(10, OUTPUT);  // Pin 10 = White wire => transisor G
 
   // font sensor pins
   pinMode(frontSensorTrig, OUTPUT);
@@ -85,37 +63,58 @@ void setup() {
   pinMode(backSensorEcho, INPUT);
 }
 
+// ****************
+// * MAIN LOOP *
+// ****************
 void loop() {
-  if (pingBackSensor() < 300) { // This is where the LED On/Off happens
-    Serial.println("something is close");
-    driveForward();
-  } else  {
-    Serial.println("nothing in range");
-    halt(); 
-  }
-  delay(500);
-
+  boolean driving = false;
   
-  Serial.println("LOOPED!");
-  // halt();
-  // driveForward();
-  // delay(1000); // delays pause execution of code so wont work with motion sensors
-  // halt();
-  // driveBackward();
-  // delay(1000); // delays pause execution of code so wont work with motion sensors
-  // halt();
-  // rotateClockwise();
-  // delay(1000);
-  // halt();
-  // rotateCounterClockwise();
-  // delay(1000);
+  if ( senseFront() ) {
+    Serial.println("Detected movement in front");
+    rotateClockwise();
+    delay(400);
+    halt();
+  }
+  if ( senseBack() ) {
+    Serial.println("Detected movement in back");
+    driving = true;
+  }
+
+  while(driving) {
+    Serial.println("driving");
+    driveForward();
+    
+    if (senseFront()) {
+      halt()
+      rotateClockwise();
+      delay(10);
+      halt();
+    }
+
+    
+  //}
 }
+
 
 // ****************
 // * FRONT SENSOR *
 // ****************
-long pingBackSensor() {
-  // back distance sensor 
+boolean senseFront() {
+  long duration, distance;
+  digitalWrite(frontSensorTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(frontSensorTrig, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(frontSensorTrig, LOW);
+  duration = pulseIn(frontSensorEcho, HIGH); // return the time between high low
+  distance = duration / 20.9;
+  return distance < 150;
+}
+
+// ****************
+// * BACK SENSOR *
+// ****************
+boolean senseBack() {
   long duration, distance;
   digitalWrite(backSensorTrig, LOW);
   delayMicroseconds(2);
@@ -124,27 +123,36 @@ long pingBackSensor() {
   digitalWrite(backSensorTrig, LOW);
   duration = pulseIn(backSensorEcho, HIGH); // return the time between high low
   distance = duration / 20.9;
-  Serial.println("De distance");
-  Serial.println(distance);
-  return distance;
+  return distance < 300;
+}
+
+// ******************
+// * PICK-UP SENSOR *
+// ******************
+boolean sensePickup() {
+  return false;
 }
 
 // ****************
 // * DRIVING PART *
 // ****************
 void driveForward() {
+  delay(100);
   activatePins(LF);
-  activatePins(RF); 
+  activatePins(RF);
 }
 void driveBackward() {
+  delay(100);
   activatePins(LB);
   activatePins(RB);
 }
 void rotateClockwise() {
+  delay(100);
   activatePins(LF);
   activatePins(RB);
 }
 void rotateCounterClockwise() {
+  delay(100);
   activatePins(LB);
   activatePins(RF);
 }
@@ -152,9 +160,10 @@ void rotateCounterClockwise() {
 // basic pin activation function
 void activatePins(const int pair[]) {
   // CKECK IF THIS WORKS
-  checkIfSafe(pair);
-  digitalWrite(pair[0], HIGH);
-  digitalWrite(pair[1], HIGH);
+  if (checkIfSafe(pair)) {
+    digitalWrite(pair[0], HIGH);
+    digitalWrite(pair[1], HIGH);
+  }
 }
 
 // Check if the given pin pair can safely 
@@ -209,11 +218,10 @@ boolean checkIfSafe(const int pair[]) {
 void halt() {
   for(int i = 3; i <= 10; i++) {
     digitalWrite(i, LOW);
-    Serial.println(i);
   }
   Serial.println("All engines halted");
-  delay(1000); // wait a bit to make sure everything is off
+  delay(100); // wait a bit to make sure everything is off
 }
 
 // the the sensor code was partially copied from:
-//  
+//  http://www.instructables.com/id/Simple-Arduino-and-HC-SR04-Example/step3/Upload-the-sketch/
