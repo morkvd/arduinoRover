@@ -1,16 +1,17 @@
-// SUPER COOL ROBOT WAGENTJE
-// UBICOMP 2016 - Team 12_02: 
-//    Mark van Dijken
-//    Luuk Hafkamp
-//    Franck van Domburg
+/////////////////////////////////////////////////////
+//                  UBICOMP 2016                   //
+//              Team 12_02 presents:               //
+//    /\   :: SUPER COOL ROBOT WAGENTJE ::   /\    //
+//   /__\                                   /__\   //
+//  /\  /\       Luuk Hafkamp              /\  /\  //
+// /__\/__\      Franck van Domburg       /__\/__\ //
+//               Mark van Dijken                   //
+//                                                 //
+/////////////////////////////////////////////////////
 
-
-// TODO:
-// 0. test current code
-// 1. Hook up sensor code
-// 2. ????
-// 3. PROFIT!
-
+// *************
+// * VARIABLES *
+// *************
 
 // Pairs for the pin numbers, by pairing them 
 // we make sure not to use the wrong combos
@@ -28,10 +29,15 @@ const int backSensorTrig = A2;
 const int backSensorEcho = A3;
 
 // Pins for light sensor
-const int lightSensorPin = A4; // select the input pin for ldr
+const int lightSensorPin = A4;
 
 // Pin for sound thingy
 const int speakerPin = 12;
+
+
+// *********
+// * SETUP *
+// *********
 
 void setup() {
   // start serial monitor thingy
@@ -55,7 +61,7 @@ void setup() {
 
   // font sensor pins
   pinMode(frontSensorTrig, OUTPUT);
-  pinMode(backSensorEcho, INPUT);
+  pinMode(frontSensorEcho, INPUT);
   // back sensor pins
   pinMode(backSensorTrig, OUTPUT);
   pinMode(backSensorEcho, INPUT);
@@ -68,20 +74,26 @@ void setup() {
 // * MAIN LOOP *
 // ****************
 void loop() {
+//  Serial.print("voorkant sensor zegt: ");
+//  Serial.println(senseFront());
+//  Serial.print("Achterkant sensor zegt: ");
+//  Serial.println(senseBack());
+  
+  
   Serial.println("main loop");
   boolean driving = false;
 
   playDrivingSound();
   
-  if ( senseFront() ) {
+  if ( senseFront() > 50 ) {
     Serial.println("Detected movement in front");
-    while( senseFront() ) {
+    while( senseFront() > 50 ) {
       Serial.println("Rotating");
       rotateClockwise();
     }
     halt();
   }
-  if ( senseBack() ) {
+  if ( senseBack() > 200 ) {
     Serial.println("Detected movement in back");
     driving = true;
   }
@@ -98,18 +110,17 @@ void loop() {
     Serial.println("driving");
     driveForward();
     playDrivingSound();
-    
-    if ( senseFront() ) {
+    if ( senseFront() > 50) {
       Serial.println("Detected movement in front while driving");
       halt();
-      while( senseFront() ) {
+      while( senseFront() > 50 ) {
         Serial.println("Rotating");
         rotateClockwise();
       }
       halt();
     }
 
-    while( sensePickup() ) {
+    while( sensePickup() > 50 ) {
       Serial.println("I was picked up! HALP");
       playPickupSound();
       if (driving) {
@@ -121,35 +132,38 @@ void loop() {
 }
 
 
-// ****************
-// * FRONT SENSOR *
-// ****************
-boolean senseFront() {
+// ******************
+// * MOTION SENSORS *
+// ******************
+long senseFront() {
   long duration, distance;
+  
   digitalWrite(frontSensorTrig, LOW);
   delayMicroseconds(2);
   digitalWrite(frontSensorTrig, HIGH);
   delayMicroseconds(100);
   digitalWrite(frontSensorTrig, LOW);
   duration = pulseIn(frontSensorEcho, HIGH); // return the time between high low
-  distance = duration / 20.9;
-  return distance < 50;
+  distance = duration / 20.9 / 2; // distacne in cm
+  
+  return distance; //< 50;
 }
-
-// ****************
-// * BACK SENSOR *
-// ****************
-boolean senseBack() {
+long senseBack() {
   long duration, distance;
+  
   digitalWrite(backSensorTrig, LOW);
   delayMicroseconds(2);
   digitalWrite(backSensorTrig, HIGH);
   delayMicroseconds(100);
   digitalWrite(backSensorTrig, LOW);
   duration = pulseIn(backSensorEcho, HIGH); // return the time between high low
-  distance = duration / 20.9;
-  return distance < 50;
+  distance = duration / 20.9 / 2; // // distacne in cm
+  
+  return distance;// < 75;
 }
+
+// the the sensor code was partially copied from:
+// http://www.instructables.com/id/Simple-Arduino-and-HC-SR04-Example/step3/Upload-the-sketch/
 
 // ******************
 // * PICK-UP SENSOR *
@@ -157,9 +171,8 @@ boolean senseBack() {
 boolean sensePickup() {
   int lightSensorValue = 1023;
   lightSensorValue = analogRead(lightSensorPin);
-  Serial.println("picked up, sensorvalue > 370 ==");
-  Serial.println(lightSensorValue > 370);
-  return lightSensorValue > 370;
+  Serial.println(lightSensorValue);
+  return lightSensorValue > 300;
 }
 
 // ****************
@@ -257,17 +270,17 @@ void halt() {
 // ****************
 
 // used notes driving sound
-#define D1  36.71 // x
-#define D3  146.83 // X
-#define D4  293.66 // X
+#define D1  36.71
+#define D3  146.83
+#define D4  293.66
 
 // used notes pickup sound
-#define LA6 1760.00 // x
-#define Bb6 1864.66 // x
-#define B6  1975.53 // x
-#define C7  2093.00 // x
-#define Db7 2217.46 // x
-#define D7  2349.32 // x
+#define LA6 1760.00
+#define Bb6 1864.66
+#define B6  1975.53
+#define C7  2093.00
+#define Db7 2217.46
+#define D7  2349.32
 
 // duration of notes
 #define BPM 120       // you can change this value changing all the others
@@ -301,6 +314,3 @@ void playPickupSound() {
 
 // Sound playing code was taken from: 
 // http://www.instructables.com/id/How-to-easily-play-music-with-buzzer-on-arduino-Th/
-
-// the the sensor code was partially copied from:
-// http://www.instructables.com/id/Simple-Arduino-and-HC-SR04-Example/step3/Upload-the-sketch/
