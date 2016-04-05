@@ -85,14 +85,6 @@ void loop() {
 
   playDrivingSound();
   
-  if ( senseFront() > 50 ) {
-    Serial.println("Detected movement in front");
-    while( senseFront() > 50 ) {
-      Serial.println("Rotating");
-      rotateClockwise();
-    }
-    halt();
-  }
   if ( senseBack() > 200 ) {
     Serial.println("Detected movement in back");
     driving = true;
@@ -110,17 +102,17 @@ void loop() {
     Serial.println("driving");
     driveForward();
     playDrivingSound();
-    if ( senseFront() > 50) {
+    if ( senseFront() < 100) {
       Serial.println("Detected movement in front while driving");
       halt();
-      while( senseFront() > 50 ) {
+      while( senseFront() < 100 ) {
         Serial.println("Rotating");
         rotateClockwise();
       }
       halt();
     }
 
-    while( sensePickup() > 50 ) {
+    while( sensePickup() ) {
       Serial.println("I was picked up! HALP");
       playPickupSound();
       if (driving) {
@@ -146,7 +138,7 @@ long senseFront() {
   duration = pulseIn(frontSensorEcho, HIGH); // return the time between high low
   distance = duration / 20.9 / 2; // distacne in cm
   
-  return distance; //< 50;
+  return distance;
 }
 long senseBack() {
   long duration, distance;
@@ -159,7 +151,7 @@ long senseBack() {
   duration = pulseIn(backSensorEcho, HIGH); // return the time between high low
   distance = duration / 20.9 / 2; // // distacne in cm
   
-  return distance;// < 75;
+  return distance;
 }
 
 // the the sensor code was partially copied from:
