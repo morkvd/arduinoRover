@@ -27,9 +27,8 @@ const int frontSensorEcho = A1;
 const int backSensorTrig = A2;
 const int backSensorEcho = A3;
 
+
 // Variables for rover state
-
-
 
 // - Possible sensor states:
   // - back sensor: 
@@ -45,7 +44,6 @@ const int backSensorEcho = A3;
   //  2. backward
   //  3. clockwise
   //  4. counterclockwise
-
 
 
 // Begin stationary
@@ -88,21 +86,52 @@ void setup() {
 }
 
 void loop() {
+  if (pingBackSensor() < 300) { // This is where the LED On/Off happens
+    Serial.println("something is close");
+    driveForward();
+  } else  {
+    Serial.println("nothing in range");
+    halt(); 
+  }
+  delay(500);
+
+  
   Serial.println("LOOPED!");
-  halt();
-  driveForward();
-  delay(1000); // delays pause execution of code so wont work with motion sensors
-  halt();
-  driveBackward();
-  delay(1000); // delays pause execution of code so wont work with motion sensors
-  halt();
-  rotateClockwise();
-  delay(1000);
-  halt();
-  rotateCounterClockwise();
-  delay(1000);
+  // halt();
+  // driveForward();
+  // delay(1000); // delays pause execution of code so wont work with motion sensors
+  // halt();
+  // driveBackward();
+  // delay(1000); // delays pause execution of code so wont work with motion sensors
+  // halt();
+  // rotateClockwise();
+  // delay(1000);
+  // halt();
+  // rotateCounterClockwise();
+  // delay(1000);
 }
 
+// ****************
+// * FRONT SENSOR *
+// ****************
+long pingBackSensor() {
+  // back distance sensor 
+  long duration, distance;
+  digitalWrite(backSensorTrig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(backSensorTrig, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(backSensorTrig, LOW);
+  duration = pulseIn(backSensorEcho, HIGH); // return the time between high low
+  distance = duration / 20.9;
+  Serial.println("De distance");
+  Serial.println(distance);
+  return distance;
+}
+
+// ****************
+// * DRIVING PART *
+// ****************
 void driveForward() {
   activatePins(LF);
   activatePins(RF); 
@@ -185,3 +214,6 @@ void halt() {
   Serial.println("All engines halted");
   delay(1000); // wait a bit to make sure everything is off
 }
+
+// the the sensor code was partially copied from:
+//  
