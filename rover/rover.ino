@@ -83,16 +83,21 @@ void loop() {
   while(driving) {
     Serial.println("driving");
     driveForward();
+    playDrivingSound();
     
-    if (senseFront()) {
-      halt()
+    if ( senseFront() ) {
+      Serial.println("Detected movement in front");
+      halt();
       rotateClockwise();
-      delay(10);
+      delay(400);
       halt();
     }
 
-    
-  //}
+    while( sensePickup() ) {
+      playPickupSound();
+      halt();
+    }
+  }
 }
 
 
