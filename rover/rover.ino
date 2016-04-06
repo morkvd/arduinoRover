@@ -131,7 +131,7 @@ long senseFront() {
   delayMicroseconds(100);
   digitalWrite(frontSensorTrig, LOW);
   duration = pulseIn(frontSensorEcho, HIGH); // return the time between high low
-  distance = duration / 20.9 / 2; // distacne in cm
+  distance = duration / 20.9 / 2; // distance in cm
   
   return distance;
 }
@@ -149,7 +149,7 @@ long senseBack() {
   return distance;
 }
 
-// the the sensor code was partially copied from:
+// the the sensor code was copied from:
 // http://www.instructables.com/id/Simple-Arduino-and-HC-SR04-Example/step3/Upload-the-sketch/
 
 // ******************
