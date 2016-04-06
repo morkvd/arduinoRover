@@ -74,22 +74,17 @@ void setup() {
 // * MAIN LOOP *
 // ****************
 void loop() {
-//  Serial.print("voorkant sensor zegt: ");
-//  Serial.println(senseFront());
-//  Serial.print("Achterkant sensor zegt: ");
-//  Serial.println(senseBack());
+  Serial.println(sensePickup());  
   
-  
-  Serial.println("main loop");
   boolean driving = false;
 
   playDrivingSound();
   
-  if ( senseBack() > 200 ) {
+  if ( senseBack() < 200 ) {
     Serial.println("Detected movement in back");
     driving = true;
   }
-  while( sensePickup() ) {
+  while( sensePickup() > 200 ) {
     Serial.println("I was picked up! HALP");
     playPickupSound();
     if (driving) {
@@ -102,17 +97,17 @@ void loop() {
     Serial.println("driving");
     driveForward();
     playDrivingSound();
-    if ( senseFront() < 100) {
+    if ( senseFront() < 150) {
       Serial.println("Detected movement in front while driving");
       halt();
-      while( senseFront() < 100 ) {
+      while( senseFront() < 150 ) {
         Serial.println("Rotating");
         rotateClockwise();
       }
       halt();
     }
 
-    while( sensePickup() ) {
+    while( sensePickup() > 200) {
       Serial.println("I was picked up! HALP");
       playPickupSound();
       if (driving) {
@@ -160,11 +155,11 @@ long senseBack() {
 // ******************
 // * PICK-UP SENSOR *
 // ******************
-boolean sensePickup() {
+int sensePickup() {
   int lightSensorValue = 1023;
   lightSensorValue = analogRead(lightSensorPin);
   Serial.println(lightSensorValue);
-  return lightSensorValue > 300;
+  return lightSensorValue;// > 300;
 }
 
 // ****************
